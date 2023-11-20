@@ -10,6 +10,8 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.stream.DoubleStream;
+import java.util.stream.Stream;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
@@ -38,7 +40,7 @@ public class Drive extends SubsystemBase {
     private final double kSkewCompensationCoefficient = 0.2215;
 
     public Drive() {
-        gyro = new Pigeon2(Constants.Swerve.pigeonID, "Canavar");
+        gyro = new Pigeon2(Constants.Swerve.pigeonID);
         gyro.getConfigurator().apply(new Pigeon2Configuration());
         zeroGyro();
 
@@ -58,7 +60,7 @@ public class Drive extends SubsystemBase {
 
     public void drive(Translation2d translation, double rotation, boolean fieldRelative, boolean isOpenLoop) {
         final double yCompensator = (kSkewCompensationCoefficient * rotation * Math.signum(translation.getX()));
-        SwerveModuleState[] swerveModuleStates =
+        SwerveModuleState[] swerveModuleStates =    
             Constants.Swerve.swerveKinematics.toSwerveModuleStates(
                 fieldRelative ? ChassisSpeeds.fromFieldRelativeSpeeds(
                                     translation.getX(), 
@@ -175,18 +177,8 @@ public class Drive extends SubsystemBase {
     public void periodic(){
         //swerveOdometry.update(getHeadingRotation(), getModulePositions());  
         mField2d.setRobotPose(getPose());
-
-        for(SwerveModule mod : mSwerveMods){
-            SmartDashboard.putNumber("Mod " + mod.moduleNumber + " CANcoder", mod.getCANcoder().getDegrees());
-            SmartDashboard.putNumber("Mod " + mod.moduleNumber + " Integrated", mod.getPosition().angle.getDegrees());
-            SmartDashboard.putNumber("Mod " + mod.moduleNumber + " Velocity", mod.getState().speedMetersPerSecond); 
-            SmartDashboard.putNumber("Mod " + mod.moduleNumber + " Pos", mod.getPosition().distanceMeters);  
-            
-        }
         SmartDashboard.putNumber("Gyro", getHeadingRotation().getDegrees());
-        SmartDashboard.putString("Robot Pose", getPose().toString());
         SmartDashboard.putData(mField2d);
-
         SmartDashboard.putNumberArray(
                 "MeasuredStates",
                 new double[] {
@@ -211,6 +203,8 @@ public class Drive extends SubsystemBase {
                         * 0.02;
 
         gyro.getSimState().setRawYaw(Units.radiansToDegrees(mSimHeading));
+
+        
     }
 
     private class OdometryUpdateThread extends Thread {
@@ -229,7 +223,7 @@ public class Drive extends SubsystemBase {
             for (int i = 0; i < 4; i++) {
                 signalsList.addAll(Arrays.asList(mSwerveMods[i].getSignals()));
             }
-
+        
             signalsList.addAll(Arrays.asList(gyro.getYaw()));
             allSignals = signalsList.toArray(new BaseStatusSignal[0]);
         }
@@ -278,5 +272,9 @@ public class Drive extends SubsystemBase {
         public int getFailedDataAcquisitions() {
             return failedDataAcquisitions;
         }
+
+        
     }
+
+
 }

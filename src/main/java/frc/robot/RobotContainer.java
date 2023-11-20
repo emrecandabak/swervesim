@@ -8,7 +8,9 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 
 import frc.robot.commands.swerve.TeleopSwerve;
+import frc.robot.commands.wrist.OpenLoopWrist;
 import frc.robot.subsystems.Drive;
+import frc.robot.subsystems.IntakeSubsystem;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -31,6 +33,7 @@ public class RobotContainer {
 
     /* Subsystems */
     private final Drive drive = new Drive();
+    private final IntakeSubsystem intake = new IntakeSubsystem();
     private final PathPlannerStuff pathPlannerStuff = new PathPlannerStuff(drive);
 
 
@@ -60,6 +63,9 @@ public class RobotContainer {
         /* Driver Buttons */
         zeroGyro.onTrue(new InstantCommand(() -> drive.zeroGyro()));
         new JoystickButton(driver, 2).onTrue(pathPlannerStuff.followTrajectoryCommand(pathPlannerStuff.trajectory, true));
+
+        new JoystickButton(driver, 3).whileTrue(new OpenLoopWrist(intake, 2));
+        new JoystickButton(driver, 4).whileTrue(new OpenLoopWrist(intake, -2));
     }
 
     /**
